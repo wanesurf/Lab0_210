@@ -7,10 +7,12 @@
 //Utilisation du tutoriel a l'adresse : https://medium.com/@suragch/minimal-client-server-example-for-ios-and-node-js-2ef123a0debb
 
 import SwiftUI
+import Alamofire
 
 struct ContentView: View {
     
-    let routeDemarrerJeu = "http://localhost:3000/api/v1/jeu/demarrerJeu"
+    let urlDemarrerJeu = "http://localhost:3000/api/v1/jeu/demarrerJeu"
+    let urlRedemarrerJeu = "http://localhost:3000/api/v1/jeu/redemarrerJeu"
     
     @State var dataString: String
     @State var name: String
@@ -37,7 +39,7 @@ struct ContentView: View {
             }
             .padding()
             Button(action: {
-                 print("")
+                self.redemarrerJeu()
             }){
                 Text("Redémarrer")
             }
@@ -52,17 +54,56 @@ struct ContentView: View {
             }
         }
     }
-    
+    //test post with alamoFire
+    fileprivate func uploadDocument(name:String) {
+        let headers: HTTPHeaders = [
+            "Content-type": "multipart/form-data"
+        ]
+
+        AF.request( urlDemarrerJeu, method: HTTPMethod(rawValue: urlRedemarrerJeu))
+        .response { request in
+                     print(request)
+                    
+                 }
+        AF.upload(
+            multipartFormData: { multipartFormData in
+                multipartFormData.append("test".data(using: String.Encoding.utf8)!, withName: "nom")
+        },
+            to: urlRedemarrerJeu, method: .post , headers: headers)
+         
+            .response { response in
+                if let data = response.data{
+                    //handle the response however you like
+                    let responseString = String(data: data, encoding: .utf8)
+                                print("responseString = \(responseString)")
+                    
+                    
+                    
+                }
+                
+
+        }
+    }
+    //aide :
+    //https://stackoverflow.com/questions/26364914/http-request-in-swift-with-post-method
     func demarrer (name: String) {
-         guard let url  = URL(string: routeDemarrerJeu) else {return}
+        
+         guard let url  = URL(string: urlDemarrerJeu) else {return}
          var request = URLRequest(url: url)
+      var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
+
+        //permet de POST avec le bon parametre
+        components.queryItems = [
+            //@State
+            URLQueryItem(name: "nom", value: name)
+        ]
+ request.httpMethod = "POST"
+        let query = components.url!.query
+
+     
+        request.httpBody = Data(query!.utf8)
         
-//        request.setValue("/demarrerJeu", forHTTPHeaderField: "Accept")
-//                request.setValue("/demarrerJeu", forHTTPHeaderField: "Content-Type")
-                request.httpMethod = "POST"
-        let postString = "cadcad"
-            request.httpBody = postString.data(using: .utf8)
-        
+        //POS la requete avec le bon parametres (name="nom")
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             guard let data = data, error == nil else {
                 print("error=\(error)")
@@ -79,7 +120,7 @@ struct ContentView: View {
     }
     func redemarrerJeu (){
         
-         guard let url  = URL(string: routeDemarrerJeu) else {return}
+         guard let url  = URL(string: urlRedemarrerJeu) else {return}
          var request = URLRequest(url: url)
         request.setValue("Keep-Alive", forHTTPHeaderField: "Connection")
         request.setValue("Cache-Control", forHTTPHeaderField: "no-cache")
@@ -87,8 +128,7 @@ struct ContentView: View {
         request.setValue("/api/v1/jeu/redemarrerJeu", forHTTPHeaderField: "Accept")
          request.setValue("/api/v1/jeu/redemarrerJeu", forHTTPHeaderField: "Content-Type")
          request.httpMethod = "GET"
-         //let postString = "name=henry&message=HelloWorld"
-       //  request.httpBody = postString.data(using: .utf8)
+   
          let task = URLSession.shared.dataTask(with: request) { data, response, error in
              guard let data = data, error == nil else {
                  print("error=\(error)")
@@ -115,5 +155,6 @@ struct ContentView_Previews: PreviewProvider {
         ContentView(dataString: "", name: "")
     }
 }
+
 
 
