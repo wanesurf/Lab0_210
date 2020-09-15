@@ -10,59 +10,110 @@ import SwiftUI
 
 struct ContentView: View {
     
-    let server = "http://localhost:3000"
+    let routeDemarrerJeu = "http://localhost:3000/api/v1/jeu/demarrerJeu"
     
     @State var dataString: String
+    @State var name: String
     var body: some View {
+      
         VStack{
             
+            HStack{
+                Text("JeuDeDés-Node-Express-TS-TDD-LOG210")
+            }
+            
+         
+    
+            TextField("Nom du nouveau joueur", text: $name)
+                
+                        .padding()
+                
+                
+            
             Button(action: {
-               self.sendRequestButtonTappled()
-                //test ouvrir page sur navigateur safari
-//                guard let url = URL(string: self.server) else { return }
-//                                                      UIApplication.shared.open(url)
+                self.demarrer(name: self.name)
             }){
-                Text("Récuperer")
-           
+                Text("Démarrer")
+            }
+            .padding()
+            Button(action: {
+                 print("")
+            }){
+                Text("Redémarrer")
+            }
+            .padding()
+            
+            Text("Joueurs")
+            .bold()
+            
+            HStack (){
+                
+                Text("\(name)")
             }
         }
     }
+    
+    func demarrer (name: String) {
+         guard let url  = URL(string: routeDemarrerJeu) else {return}
+         var request = URLRequest(url: url)
+        
+//        request.setValue("/demarrerJeu", forHTTPHeaderField: "Accept")
+//                request.setValue("/demarrerJeu", forHTTPHeaderField: "Content-Type")
+                request.httpMethod = "POST"
+        let postString = "cadcad"
+            request.httpBody = postString.data(using: .utf8)
+        
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            guard let data = data, error == nil else {
+                print("error=\(error)")
+                return
+            }
+            if let httpStatus = response as? HTTPURLResponse, httpStatus.statusCode != 200 {           // check for http errors
+                print("statusCode should be 200, but is \(httpStatus.statusCode)")
+                print("response = \(response)")
+            }
+            let responseString = String(data: data, encoding: .utf8)
+            print("responseString = \(responseString)")
+        }
+        task.resume()
+    }
+    func redemarrerJeu (){
+        
+         guard let url  = URL(string: routeDemarrerJeu) else {return}
+         var request = URLRequest(url: url)
+        request.setValue("Keep-Alive", forHTTPHeaderField: "Connection")
+        request.setValue("Cache-Control", forHTTPHeaderField: "no-cache")
+        
+        request.setValue("/api/v1/jeu/redemarrerJeu", forHTTPHeaderField: "Accept")
+         request.setValue("/api/v1/jeu/redemarrerJeu", forHTTPHeaderField: "Content-Type")
+         request.httpMethod = "GET"
+         //let postString = "name=henry&message=HelloWorld"
+       //  request.httpBody = postString.data(using: .utf8)
+         let task = URLSession.shared.dataTask(with: request) { data, response, error in
+             guard let data = data, error == nil else {
+                 print("error=\(error)")
+                 return
+             }
+             if let httpStatus = response as? HTTPURLResponse, httpStatus.statusCode != 200 {           // check for http errors
+                 print("statusCode should be 200, but is \(httpStatus.statusCode)")
+                 print("response = \(response)")
+             }
+             let responseString = String(data: data, encoding: .utf8)
+             print("responseString = \(responseString)")
+         }
+         task.resume()
+    }
  
-     func sendRequestButtonTappled () -> String {
-        
-          guard let url  = URL(string: server) else {return ""}
-        
-        
-        
-        // background task to make request with URLSession
-               let task = URLSession.shared.dataTask(with: url) {
-                   (data, response, error) in
-                   if let error = error {
-                       print(error)
-                       return
-                   }
-                   guard let data = data else {return}
-                   guard let dataString = String(data: data, encoding: String.Encoding.utf8) else {return}
-                self.dataString = dataString
-                   // update the UI if all went OK
-//                   DispatchQueue.main.async {
-//                       self.serverResponseLabel.text = dataString
-//                   }
-               }
-               // start the task
-               task.resume()
-        print(dataString)
-        return dataString
-           }
+
         
     
 }
 
-//
-//struct ContentView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        ContentView()
-//    }
-//}
+
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView(dataString: "", name: "")
+    }
+}
 
 
